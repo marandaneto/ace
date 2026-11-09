@@ -4,9 +4,9 @@ anchor: function draft
 created: 2026-10-16T18:32:55Z
 norm: '1'
 sig: 9775c8890db42443
-body_hash: 6918a46a3994c088
-raw_hash: 8984d6500c60a112
-vouched: 2026-10-22T21:42:37Z
+body_hash: 50f70c8804f60c3b
+raw_hash: bec303466a83eadf
+vouched: 2026-11-08T12:33:57Z
 lines: 133-155
 ---
 

@@ -30,8 +30,8 @@ export type Listing = {
 	revision?: number;
 	owner: string;
 	/**
-	 * The tailnet the channel was created on, by MagicDNS suffix. Records from before tailnets were
-	 * recorded have none; they stay on disk but no host lists them.
+	 * The tailnet the channel was created on, by MagicDNS suffix, or "local" for local-only channels.
+	 * Records from before tailnets were recorded have none and remain hidden.
 	 */
 	tailnet?: string;
 	project: string;
@@ -77,10 +77,11 @@ const current = identity();
 export const user = config.user || current.login || userInfo().username;
 
 /**
- * Channels belong to the tailnet they were created on, and a host shows only its own tailnet's.
- * Like `user`, it is fixed when the process starts; without Tailscale the host has no channels.
+ * Like `user`, the connected tailnet is fixed when the process starts. Local-only channels use a
+ * separate catalog scope, never a tailnet identity for listeners or service credentials.
  */
 export const tailnet = current.tailnet;
+const scope = tailnet || "local";
 
 export function dir(id: string): string {
 	return join(root, id);
@@ -198,14 +199,9 @@ export function fork(source: Listing, model: ModelRef | undefined, branches: Set
 
 /** A new channel's record, not yet saved: a hosted channel saves it once the service has it. */
 export function draft(project: string, model?: ModelRef, name?: string, hosted?: string): Listing {
-	if (!tailnet) {
-		// The tailnet is read once at startup; Ace Helper restarts itself when Tailscale starts later.
+	if (hosted && !tailnet) {
 		throw new Error(
-			!identity().tailnet
-				? "Start Tailscale first: every channel belongs to a tailnet."
-				: config.helper
-				? "Ace Helper is restarting to use Tailscale. Try again in a moment."
-				: "Restart ace serve: it started before Tailscale was running.",
+			"Hosted channels need a connected tailnet. Restart Ace after connecting Tailscale.",
 		);
 	}
 	const names = taken();
@@ -220,7 +216,7 @@ export function draft(project: string, model?: ModelRef, name?: string, hosted?:
 		prefix: chosen,
 		named: !!name,
 		owner: user,
-		tailnet,
+		tailnet: scope,
 		project,
 		model,
 		created: Date.now(),
@@ -296,7 +292,7 @@ export function said(id: string, { at, author, mentions }: Said): void {
 }
 
 function isListed(record: Listing): boolean {
-	return !!tailnet && record.tailnet === tailnet;
+	return record.tailnet === scope;
 }
 
 function records(): Listing[] {
@@ -306,7 +302,7 @@ function records(): Listing[] {
 		.map(read);
 }
 
-/** This tailnet's channels; the others stay on disk untouched. */
+/** The current scope's channels; all others stay on disk untouched. */
 export function list(): Listing[] {
 	return records().filter(isListed).sort((a, b) => a.created - b.created);
 }

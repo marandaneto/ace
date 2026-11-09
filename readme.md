@@ -5,8 +5,8 @@ your own machines.
 
 ## Prerequisites
 
-- [Tailscale](https://tailscale.com): your tailnet is your team. Start it before Ace; a host
-  without Tailscale has no channels.
+- [Tailscale](https://tailscale.com), optional for local use: your tailnet is your team. Without a
+  connected tailnet, Ace creates local-only channels and listens only on localhost.
 - A model provider key: Anthropic or OpenAI, added in `Settings → Providers`.
 
 ## Security — read this first

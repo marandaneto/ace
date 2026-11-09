@@ -1220,6 +1220,7 @@ async function claim(port: number) {
  */
 export async function serve(port: number, loopback = false, script?: string): Promise<never> {
 	config.port = port;
+	loopback ||= !catalog.tailnet;
 	config.loopback = loopback;
 	// Channel workers and agent shells reach this listener for the owner's windows.
 	process.env.ACE_PORT = String(port);

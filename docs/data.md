@@ -30,7 +30,10 @@ The socket, worker PID, and logs are process state, not durable channel content.
 A host lists only channels whose `channel.json` names the tailnet it is on. Hidden channels stay on
 disk, intact, and Ace does not back them up or delete them. A channel from another tailnet
 reappears when the host starts on that tailnet; one from before Ace recorded tailnets has none and
-never reappears. `ace restore` adds a backup to the current tailnet.
+never reappears. Without a connected tailnet, the host instead lists local-only channels, whose
+existing `tailnet` field is `"local"`. These channels stay hidden on a connected tailnet and are
+never published to a team. No existing records are rewritten or adopted as local-only channels.
+`ace restore` adds a backup to the current tailnet, or to the local-only scope when disconnected.
 
 ## Back up a channel
 

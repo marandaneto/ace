@@ -1,8 +1,11 @@
 # Setup
 
-Start Tailscale before Ace Helper. Every channel belongs to the tailnet it was created on, and a
-host shows only its current tailnet's channels, so a host without Tailscale creates none. Restart
-Ace Helper after switching tailnets.
+Tailscale is optional for local use. Without a connected tailnet, Ace creates local-only channels
+and serves its authenticated app only on localhost, without peers, directory sync, or lobbies.
+Start Tailscale before Ace Helper to use team channels. Restart Ace Helper after connecting or
+switching tailnets: it then shows that tailnet's channels instead of local-only channels. Local-only
+channels remain on disk and reappear when Ace starts without a connected tailnet; they are never
+published to a team.
 
 ## Provider keys
 

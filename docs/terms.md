@@ -76,8 +76,10 @@ serves one tailnet, fixed when it is deployed; another tailnet needs new cells.
 **Channel**:
 The durable unit shown in the sidebar, backed by one pi Session and containing one or more chats.
 A local channel runs as one worker process on its host; a hosted channel runs in a team-deployed
-cell. Every channel belongs to the tailnet it was created on, and a host shows only the channels of
-the tailnet it is on. The UI calls it a channel.
+cell. A channel created on a tailnet belongs to that tailnet. Without a connected tailnet, a host
+creates local-only channels, accessible only on that machine. A host shows its current tailnet's
+channels, or its local-only channels when no tailnet is connected; it never shares local-only
+channels with a team. The UI calls it a channel.
 _Avoid_: session, room, thread
 
 **Chat**:
