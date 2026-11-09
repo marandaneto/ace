@@ -4,9 +4,9 @@ anchor: function Settings
 created: 2026-10-19T20:53:03Z
 norm: '1'
 sig: 8d6f8142ef1a23f2
-body_hash: 8dcd94aa1615725c
-raw_hash: ae00579f8a20a994
-vouched: 2026-10-22T21:17:35Z
+body_hash: f08986f371d238f3
+raw_hash: c09fdf03b929c615
+vouched: 2026-11-08T12:53:02Z
 lines: 325-545
 ---
 

@@ -282,6 +282,15 @@ for, such as `OPENAI_API_KEY`. Agent shells inherit the process environment. Par
 to invoke an agent can use its shell tools, so processes that run tools first move credential-like
 variables out of the environment; only the key lookup can read them.
 
+Local hosts can also use OpenAI\'s provider-owned ChatGPT subscription OAuth flow with `ace login
+openai`. The access and refresh tokens stay in Keychain; `subscription.json` beside preferences
+holds only a versioned installation ID and connected flag. The injected pi-ai credential store
+holds a kernel-managed SQLite lock across the refresh and Keychain write, so workers cannot
+rotate the same token concurrently. A running host saves and removes subscription credentials
+through owner-only local gateway requests. Settings uses the same nonblocking Keychain reads as
+API keys. A stored subscription owns OpenAI authentication until logout; a failed refresh does
+not fall back to separately billed API keys.
+
 Workers resolve Keychain credentials on each model request, so adding, replacing, or removing a
 key through the app or CLI takes effect without restarting workers. Keychain access errors are
 distinct from missing keys. Settings exposes provider status and environment overrides, never

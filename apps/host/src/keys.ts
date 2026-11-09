@@ -6,11 +6,12 @@
 import { access } from "node:fs/promises";
 import { homedir } from "node:os";
 
-import type { MutableModels } from "@earendil-works/pi-ai";
+import type { MutableModels, OAuthCredential } from "@earendil-works/pi-ai";
 import { builtinModels } from "@earendil-works/pi-ai/providers/all";
 
 import { config } from "./config";
 import type { CredentialStatus } from "./protocol";
+import { subscription } from "./subscription";
 
 const sealed = new Map<string, string>();
 
@@ -198,8 +199,28 @@ export async function latest(name: string, fresh?: boolean): Promise<CredentialS
 	};
 }
 
+export async function connectSubscription(value: string): Promise<void> {
+	let credential: OAuthCredential;
+	try {
+		if (typeof value !== "string" || value.length > 65_536) throw new Error();
+		credential = JSON.parse(value) as OAuthCredential;
+		if (
+			credential.type !== "oauth" || !credential.access || !credential.refresh
+			|| typeof credential.access !== "string" || typeof credential.refresh !== "string"
+			|| !Number.isFinite(credential.expires)
+		) throw new Error();
+	} catch {
+		throw new Error("Invalid ChatGPT subscription credential");
+	}
+	await subscription({ read: keychain, write: store, remove: forget }).modify(
+		"openai",
+		async () => credential,
+	);
+}
+
 function catalog(lookup: (name: string) => Promise<string | undefined>): MutableModels {
 	return builtinModels({
+		credentials: subscription({ read: keychain, write: store, remove: forget }, lookup),
 		authContext: {
 			env: lookup,
 			async fileExists(path) {

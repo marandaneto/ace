@@ -7,7 +7,8 @@ your own machines.
 
 - [Tailscale](https://tailscale.com), optional for local use: your tailnet is your team. Without a
   connected tailnet, Ace creates local-only channels and listens only on localhost.
-- A model provider key: Anthropic or OpenAI, added in `Settings → Providers`.
+- Model credentials: an Anthropic or OpenAI API key added in `Settings → Providers`, or an eligible
+  ChatGPT subscription connected with `bun ace login openai` for local use.
 
 ## Security — read this first
 

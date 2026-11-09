@@ -16,6 +16,27 @@ From a checkout, Ace reads a key such as `OPENAI_API_KEY` from `ACE_OPENAI_API_K
 `OPENAI_API_KEY`, then the OS keychain (`bun ace key set OPENAI_API_KEY`). Environment overrides
 take priority and Settings identifies them.
 
+### ChatGPT subscription
+
+For a local host, sign in with an eligible ChatGPT subscription instead of an OpenAI API key:
+
+```sh
+bun ace login openai
+bun ace models
+```
+
+Open the printed authorization URL in Brave and approve the sign-in. The localhost callback
+finishes the login; if it cannot, paste the full redirect URL into the terminal. Refresh the UI
+or reload it after signing in. Subscription-authenticated OpenAI models appear in the existing
+model picker. Restart an already running source host once after applying this patch.
+
+OAuth tokens stay in Keychain. Only a stable installation ID and a connected flag are stored in
+`subscription.json` beside the host preferences. CLI and channel workers serialize token refresh
+across processes, and a running host saves the login so it owns its Keychain item. A subscription
+login takes priority over OpenAI API keys; a refresh failure never silently falls back to API
+billing. `bun ace logout openai` removes the subscription login without deleting API keys.
+Subscription eligibility and usage limits are controlled by OpenAI.
+
 ## Command line tool
 
 `Settings → Ace Helper` installs the command line tool. It links `ace` for stable, or `ace-canary`

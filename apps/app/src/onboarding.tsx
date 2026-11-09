@@ -127,15 +127,22 @@ export function Welcome({ github, onClose }: { github?: string; onClose: () => v
 		error?: string;
 		saved?: ProviderId;
 		environment?: boolean;
+		subscription?: boolean;
 	}>({});
 	const roster = useRoster();
 
 	useEffect(() => {
 		host.request<Settings>({ op: "settings" }).then((settings) => {
-			const found = settings.providers.find(({ source }) =>
-				source === "keychain" || source === "environment"
+			const found = settings.providers.find(({ source, subscription }) =>
+				subscription || source === "keychain" || source === "environment"
 			);
-			if (found) setSaving({ saved: found.id, environment: found.source === "environment" });
+			if (found) {
+				setSaving({
+					saved: found.id,
+					environment: found.source === "environment",
+					subscription: found.subscription,
+				});
+			}
 		}, () => {});
 	}, []);
 
@@ -159,7 +166,7 @@ export function Welcome({ github, onClose }: { github?: string; onClose: () => v
 						<Checks github={github} />
 						<Header
 							title="Welcome to Ace"
-							description="Agents in your channels run on this Mac with your own model key."
+							description="Agents in your channels run on this Mac with your own model credentials."
 						/>
 						<form
 							className="flex flex-col gap-2 rounded-lg border bg-card px-3.5 py-3"
@@ -191,7 +198,7 @@ export function Welcome({ github, onClose }: { github?: string; onClose: () => v
 									aria-label={`${label(provider)} API key`}
 									className="font-mono text-xs"
 									placeholder={saving.saved
-										? `${label(saving.saved)} key saved. Paste another to replace it`
+										? `${label(saving.saved)} configured. Paste an API key to save it`
 										: PROVIDERS.find(entry => entry.id === provider)!.placeholder}
 									value={value}
 									disabled={saving.busy}
@@ -207,7 +214,9 @@ export function Welcome({ github, onClose }: { github?: string; onClose: () => v
 							{saving.saved && !saving.error && (
 								<span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
 									<IconCheck className="size-3.5 text-primary" aria-hidden />
-									{saving.environment
+									{saving.subscription
+										? "Using your ChatGPT subscription."
+										: saving.environment
 										? `Using the ${label(saving.saved)} key from Ace Helper's environment.`
 										: `${label(saving.saved)} key works. Saved in Keychain.`}
 								</span>

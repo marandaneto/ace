@@ -28,6 +28,7 @@ import {
 } from "./preferences";
 import type { Compute, Invite, ProviderId, Settings } from "./protocol";
 import * as tailnet from "./tailnet";
+import { hasSubscription } from "./subscription";
 
 const providers = new Map(
 	[
@@ -55,6 +56,7 @@ export async function settings(fresh?: boolean): Promise<Settings> {
 				Object.assign(
 					await latest(key, fresh),
 					{ id, name },
+					id === "openai" && hasSubscription() ? { subscription: true as const } : {},
 					isRejected(key) ? { rejected: true as const } : {},
 				)
 			),

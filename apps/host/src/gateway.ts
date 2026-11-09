@@ -20,7 +20,7 @@ import { retryLoginShell, shell } from "./environment";
 import type { GatewayClient, Watch } from "./gateway-client";
 import * as github from "./github";
 import { describe, health, HostConflict } from "./health";
-import { seal } from "./keys";
+import { connectSubscription, models as providers, seal } from "./keys";
 import * as lobby from "./lobby";
 import { failure, log, open as openLog } from "./log";
 import { move, targets } from "./move";
@@ -486,6 +486,8 @@ const windowOps = new Set<HostRequest["op"]>([
 ]);
 const moveOps = new Set<HostRequest["op"]>(["move-targets", "move"]);
 const keychainOps = new Set<HostRequest["op"]>([
+	"subscription-save",
+	"subscription-remove",
 	"key-store",
 	"key-forget",
 	"directory-set",
@@ -701,6 +703,12 @@ async function handle(
 			return settings(request.fresh);
 		case "diagnostics":
 			return diagnostics(request.sync);
+		case "subscription-save":
+			await connectSubscription(request.value);
+			return settingsChanged();
+		case "subscription-remove":
+			await providers().logout("openai");
+			return settingsChanged();
 		case "key-set":
 			await setKey(request.provider, request.value);
 			return settingsChanged();

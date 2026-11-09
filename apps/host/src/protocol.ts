@@ -296,6 +296,7 @@ export type CredentialStatus = {
 export type ProviderSettings = CredentialStatus & {
 	id: ProviderId;
 	name: string;
+	subscription?: true;
 	/** The provider rejected the key at its last check, and the key hasn't changed since. */
 	rejected?: true;
 };
@@ -378,6 +379,8 @@ export type HostRequest =
 	 */
 	| { op: "key-store"; name: string; value: string }
 	| { op: "key-forget"; name: string }
+	| { op: "subscription-save"; value: string }
+	| { op: "subscription-remove" }
 	/** Join after the directory accepts the URL and secret, or keep the saved secret; null leaves. */
 	| { op: "directory-set"; url: string | null; secret?: string }
 	/**

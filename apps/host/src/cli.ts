@@ -15,7 +15,8 @@ import * as directory from "./directory";
 import * as web from "./web";
 import { serve } from "./gateway";
 import type { GatewayClient, Watch } from "./gateway-client";
-import { forget, store } from "./keys";
+import { connectSubscription, forget, models as providers, store } from "./keys";
+import { login } from "./login";
 import { dir as logDir, failure, log, open as openLog } from "./log";
 import { health, HostConflict } from "./health";
 import { type Filter, follow, print } from "./logs";
@@ -85,6 +86,8 @@ const USAGE = `ace — channels on this host
                                                 give the team or one person every channel in it
   ace desktop <channel> on|off                   let the channel's agents use native desktop tools
   ace models
+  ace login openai                             sign in with an eligible ChatGPT subscription
+  ace logout openai                            remove the saved subscription login
   ace model [provider/id|auto]                   show or set the model for a chat's first agent run
   ace key set <NAME>                             store a key in the OS keychain, read from stdin;
                                                  a running host saves it so it can read it unprompted
@@ -423,7 +426,9 @@ async function main() {
 	if (flags.help || !command || command === "help") return console.log(HELP);
 	// Shells start background jobs with SIGINT ignored and Bun keeps that, so `kill -INT` would not
 	// end a backgrounded watch. A listener takes SIGINT back; serve shuts down with its own.
-	if (command !== "serve") process.on("SIGINT", () => process.exit(130));
+	if (command !== "serve" && command !== "login") {
+		process.on("SIGINT", () => process.exit(130));
+	}
 	if (command !== "serve" && command !== "logs") {
 		openLog("cli");
 		log("info", "cli.command", { command, ...(ref ? { ref } : {}) });
@@ -607,6 +612,21 @@ async function main() {
 		}
 		case "serve":
 			return serve(Number(flags.port || config.port), !!flags.loopback, flags.demo);
+		case "login":
+		case "logout": {
+			if (ref !== "openai" || rest.length) throw new Error(`ace ${command} openai`);
+			const running = await isHostRunning();
+			if (command === "login") {
+				return login((value) =>
+					running
+						? local({ op: "subscription-save", value })
+						: connectSubscription(value)
+				);
+			}
+			if (running) await local({ op: "subscription-remove" });
+			else await providers().logout("openai");
+			return console.log("Removed the ChatGPT subscription login. API keys are unchanged.");
+		}
 		case "key": {
 			const name = rest[0];
 			if (!name || !/^[A-Z][A-Z0-9_]*$/.test(name)) {

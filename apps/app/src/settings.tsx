@@ -122,8 +122,12 @@ function Provider({ provider, disabled }: { provider: ProviderSettings; disabled
 			id={`${id}-label`}
 			label={provider.name}
 			description={`${
-				provider.override ? `${provider.override} overrides Keychain` : sources[provider.source]
-			}${provider.rejected ? `, but ${provider.name} rejected it` : ""}`}
+				provider.subscription
+					? "ChatGPT subscription saved in Keychain"
+					: provider.override
+					? `${provider.override} overrides Keychain`
+					: sources[provider.source]
+			}${!provider.subscription && provider.rejected ? `, but ${provider.name} rejected it` : ""}`}
 			footer={
 				<>
 					{editing && (
@@ -180,6 +184,23 @@ function Provider({ provider, disabled }: { provider: ProviderSettings; disabled
 							Remove the saved {provider.name} key?
 						</Confirm>
 					)}
+					{provider.id === "openai" && (
+						<Status>
+							{provider.subscription
+								? (
+									<>
+										Subscription takes priority over API keys. Disconnect with{" "}
+										<code>bun ace logout openai</code>.
+									</>
+								)
+								: (
+									<>
+										Have a ChatGPT subscription? Run <code>bun ace login openai</code>{" "}
+										in your terminal, then refresh.
+									</>
+								)}
+						</Status>
+					)}
 					{provider.waiting && <Status>{provider.waiting}…</Status>}
 					{provider.error && <Problem>{provider.error}</Problem>}
 					{action.busy && <Status>Checking…</Status>}
@@ -188,7 +209,8 @@ function Provider({ provider, disabled }: { provider: ProviderSettings; disabled
 				</>
 			}
 		>
-			{(provider.source === "keychain" || provider.source === "environment") && (
+			{!provider.subscription
+				&& (provider.source === "keychain" || provider.source === "environment") && (
 				<Button
 					variant="outline"
 					aria-label={`Check ${provider.name} connection`}
@@ -199,7 +221,7 @@ function Provider({ provider, disabled }: { provider: ProviderSettings; disabled
 				</Button>
 			)}
 			{/* A saved key would go unused while the environment overrides it. */}
-			{!editing && !provider.override && (
+			{!editing && !provider.override && !provider.subscription && (
 				<Button
 					variant="outline"
 					aria-label={`${provider.stored ? "Replace" : "Add"} ${provider.name} key`}
@@ -283,14 +305,18 @@ function DefaultModel({ settings, disabled }: { settings?: HostSettings; disable
 							</optgroup>
 						);
 					}
-					const missing = provider.source === "missing";
+					const missing = provider.source === "missing" && !provider.subscription;
 					return (
 						<optgroup
 							key={provider.id}
 							label={`${provider.name} (${missing ? "no key" : "unavailable"})`}
 						>
 							<option disabled>
-								{missing ? "Add a key" : "Check its key"} in Providers to use {provider.name} models
+								{provider.subscription
+									? "Reconnect with bun ace login openai"
+									: `${
+										missing ? "Add a key" : "Check its key"
+									} in Providers to use ${provider.name} models`}
 							</option>
 						</optgroup>
 					);
@@ -551,7 +577,7 @@ export function Settings(
 							<div hidden={section !== "providers"}>
 								<Page>
 									{/* Keychain unlocks and environment changes happen outside Ace. */}
-									<Group title="API keys" action={refresh("Refresh")}>
+									<Group title="Providers" action={refresh("Refresh")}>
 										{result.settings?.providers.map((provider) => (
 											<Provider key={provider.id} provider={provider} disabled={offline} />
 										))}
